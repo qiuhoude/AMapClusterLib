@@ -1,8 +1,9 @@
 # 基于高德地图的,marker集合点库
 
 ## 效果图
-![](https://github.com/qiuhoude/AMapClusterLib/tree/master/screenshot/a
-.png)  
+![](https://raw.githubusercontent.com/qiuhoude/AMapClusterLib/master/screenshot/a.png)  
+![](https://raw.githubusercontent.com/qiuhoude/AMapClusterLib/master/screenshot/screenshot4.gif)
+
 
 
 ## 特点:
