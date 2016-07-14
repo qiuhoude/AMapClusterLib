@@ -17,6 +17,22 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+}
+
+task copyApk {
+    doLast {
+        println "./build/outputs/apk/${project.name}-debug.apk"
+        def versionName = android.defaultConfig.versionName
+        def appName = "sample_v${versionName}.apk"
+        copy {
+            from "./build/outputs/apk/${project.name}-debug.apk"
+            into "../apk/"
+            rename {
+                appName
+            }
+        }
+    }
 }
 
 dependencies {
