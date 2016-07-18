@@ -1,17 +1,19 @@
 package com.houde.amapclusterlib;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.TypeEvaluator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -145,32 +147,62 @@ public class ClusterOverlay {
 
     public void moveMarkerAnim(final Marker marker, final LatLng start, final LatLng end, final boolean isVisible) {
 
-        marker.setVisible(true);
-        marker.setPosition(start);
-        final long startTime = SystemClock.uptimeMillis();
+//        marker.setVisible(true);
+//        marker.setPosition(start);
+//        final long startTime = SystemClock.uptimeMillis();
+//
+//        final long duration = 300;
+//
+//        final Interpolator interpolator = new LinearInterpolator();
 
-        final long duration = 300;
+//        uiHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                long elapsed = SystemClock.uptimeMillis() - startTime;
+//                float percent = interpolator.getInterpolation((float) elapsed / duration);
+//                //
+//                double lng = percent * end.longitude + (1 - percent)
+//                        * start.longitude;
+//                double lat = percent * end.latitude + (1 - percent)
+//                        * start.latitude;
+//                marker.setPosition(new LatLng(lat, lng));
+//                if (percent < 1.0) {
+//                    uiHandler.postDelayed(this, 16);
+//                } else {
+//                    marker.setVisible(isVisible);
+//                }
+//            }
+//        });
 
-        final Interpolator interpolator = new LinearInterpolator();
 
-        uiHandler.post(new Runnable() {
+        //TODO 使用属性动画进行写动画
+        ValueAnimator animator = new ValueAnimator();
+        animator.setDuration(300);
+        animator.setObjectValues(start, end);
+        animator.setInterpolator(new AccelerateDecelerateInterpolator());
+        animator.setEvaluator(new TypeEvaluator<LatLng>() {
             @Override
-            public void run() {
-                long elapsed = SystemClock.uptimeMillis() - startTime;
-                float percent = interpolator.getInterpolation((float) elapsed / duration);
-                //
-                double lng = percent * end.longitude + (1 - percent)
-                        * start.longitude;
-                double lat = percent * end.latitude + (1 - percent)
-                        * start.latitude;
-                marker.setPosition(new LatLng(lat, lng));
-                if (percent < 1.0) {
-                    uiHandler.postDelayed(this, 16);
-                } else {
-                    marker.setVisible(isVisible);
-                }
+            public LatLng evaluate(float fraction, LatLng startValue, LatLng endValue) {
+                double longitude = startValue.longitude + (fraction * (endValue.longitude - startValue.longitude));
+                double latitude = startValue.latitude + (fraction * (endValue.latitude - startValue.latitude));
+                return new LatLng(latitude, longitude);
             }
         });
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                marker.setVisible(isVisible);
+                animation.removeListener(this);
+            }
+        });
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                LatLng latLng = (LatLng) animation.getAnimatedValue();
+                marker.setPosition(latLng);
+            }
+        });
+        animator.start();
 
     }
 
@@ -324,9 +356,9 @@ public class ClusterOverlay {
                     moveClusters.put(cluster, parent.getPosition());
                     redrawClusters.add(parent);
                     i++;
-                }else {
+                } else {
                     //
-                    if (moveClusters.containsKey(existCluster)){
+                    if (moveClusters.containsKey(existCluster)) {
                         Cluster parent = findParent(cluster);
                         if (parent == null) {
                             continue;

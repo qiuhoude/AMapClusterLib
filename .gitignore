@@ -42,3 +42,6 @@ captures/
 # Keystore files
 *.jks
 
+amapclusterlib/src/main/res/drawable/
+apk/
+sample/src/main/res/drawable/
